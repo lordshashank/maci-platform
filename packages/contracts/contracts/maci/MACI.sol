@@ -19,6 +19,9 @@ contract MACI is Ownable, BaseMACI, ICommon {
   /// @notice Registry manager
   IRegistryManager public registryManager;
 
+  /// @notice Mapping of public key to state index
+  mapping(uint256 => mapping(uint256 => uint40)) public pubKeyToStateIndex;
+
   /// @notice Create a new instance of the MACI contract.
   /// @param pollFactory The PollFactory contract
   /// @param messageProcessorFactory The MessageProcessorFactory contract
@@ -48,7 +51,23 @@ contract MACI is Ownable, BaseMACI, ICommon {
       emptyBallotRoots
     )
   {}
+	function signUp(
+		PubKey memory _pubKey,
+		bytes memory _signUpGatekeeperData,
+		bytes memory _initialVoiceCreditProxyData
+	) public override {
+		// check if the pubkey is already registered
+		if (pubKeyToStateIndex[_pubKey.x][_pubKey.y] != 0)
+			revert PubKeyAlreadyRegistered();
 
+		super.signUp(
+			_pubKey,
+			_signUpGatekeeperData,
+			_initialVoiceCreditProxyData
+		);
+
+		pubKeyToStateIndex[_pubKey.x][_pubKey.y] = lazyIMTData.numberOfLeaves;
+	}
   /// @notice Initialize the poll by given poll id and transfer poll ownership to the caller.
   /// @param pollId The poll id
   function initPoll(uint256 pollId) public onlyOwner {

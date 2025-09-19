@@ -9,4 +9,5 @@ interface ICommon {
   error InvalidInput();
   error InvalidIndex();
   error ValidationError();
+  error PubKeyAlreadyRegistered();
 }
